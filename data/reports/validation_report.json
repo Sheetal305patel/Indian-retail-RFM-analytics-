@@ -1,0 +1,99 @@
+{
+  "audit_timestamp": "2026-11-21T19:12:40.334858",
+  "as_of_date": "2026-11-20",
+  "model_version": "rfm_v3.0_india_enterprise",
+  "overall_status": "PASSED",
+  "scorecard": "10/10 checks passed",
+  "financial_summary": {
+    "total_raw_orders": 20000,
+    "total_raw_net_sales_usd": 46653440.25,
+    "qualifying_orders_in_window": 14967,
+    "qualifying_net_sales_usd": 40603905.4,
+    "anonymous_net_sales_usd": 2835873.9,
+    "anonymous_sales_share_pct": 6.08
+  },
+  "checklist": [
+    {
+      "check_id": "CHK_01_FINANCIAL_RECONCILIATION",
+      "name": "Raw Source vs Curated Net Sales Reconciliation",
+      "expected": "\u20b946,653,440.25",
+      "actual": "\u20b946,653,440.25",
+      "difference": 0.0,
+      "passed": true,
+      "detail": "Confirmed that raw net sales equals curated net sales across all statuses."
+    },
+    {
+      "check_id": "CHK_02_EXCLUSION_INTEGRITY",
+      "name": "Cancelled, Fraud, and Test Order Exclusion",
+      "expected": "0 qualifying orders from excluded categories",
+      "actual": "0 qualifying orders",
+      "passed": true,
+      "detail": "Verified 1901 excluded orders were zeroed from RFM eligibility."
+    },
+    {
+      "check_id": "CHK_03_REFUND_ACCOUNTING",
+      "name": "Full Refund Zero-Frequency Enforcement",
+      "expected": "0 qualifying orders among fully refunded transactions",
+      "actual": "0 qualifying orders",
+      "passed": true,
+      "detail": "Verified 474 fully refunded orders have zero frequency weight."
+    },
+    {
+      "check_id": "CHK_04_TEMPORAL_INTEGRITY",
+      "name": "Temporal Bounds and Non-Negative Recency",
+      "expected": "0 future orders and 0 negative recency records",
+      "actual": "0 future orders, 0 negative recencies",
+      "passed": true,
+      "detail": "Verified timestamps do not exceed as_of_date and recency is strictly non-negative."
+    },
+    {
+      "check_id": "CHK_05_CUSTOMER_DEDUPLICATION",
+      "name": "Customer Master Table Uniqueness",
+      "expected": "0 duplicate customer_id records",
+      "actual": "0 duplicate customer records",
+      "passed": true,
+      "detail": "Confirmed all 4,000 customer records are deduplicated primary keys."
+    },
+    {
+      "check_id": "CHK_06_ANONYMOUS_QUANTIFICATION",
+      "name": "Anonymous Store Sales Quantification",
+      "expected": "Quantified and segregated from customer profiles",
+      "actual": "\u20b92,835,873.90 (6.08% of total net sales)",
+      "passed": true,
+      "detail": "Identified 1,190 anonymous POS orders isolated from RFM customer tables."
+    },
+    {
+      "check_id": "CHK_07_SEGMENT_PLAUSIBILITY",
+      "name": "Lifecycle Segment Completeness",
+      "expected": "0 unassigned customers and plausible distribution",
+      "actual": "0 unassigned, 8 active segments",
+      "passed": true,
+      "detail": "Segment breakdown: {'Lapsed': 1807, 'Champions': 655, 'Loyal Customers': 503, 'Promising': 279, 'Recent Customers': 275, 'Need Attention': 249, 'One-Time / Low-History': 184, 'High-Value, At Risk': 48}"
+    },
+    {
+      "check_id": "CHK_08_RFM_SUMMATION_RECONCILIATION",
+      "name": "RFM Customer Total vs Qualifying Orders Reconciliation",
+      "expected": "\u20b940,603,905.40",
+      "actual": "\u20b940,603,905.40",
+      "difference": 0.0,
+      "passed": true,
+      "detail": "Validated that customer-level sales sum strictly equals qualifying order sales."
+    },
+    {
+      "check_id": "CHK_09_PII_SEPARATION",
+      "name": "Analytical Table PII Isolation (Privacy by Design)",
+      "expected": "0 PII contact attributes in customer_rfm",
+      "actual": "0 PII fields detected ([])",
+      "passed": true,
+      "detail": "Verified that contact identifiers remain segregated in protected contact tables."
+    },
+    {
+      "check_id": "CHK_10_SAMPLE_REPRODUCIBILITY",
+      "name": "Sample Customer Metric Audit & Reproducibility",
+      "expected": "100% calculation match across sampled customer records",
+      "actual": "100% match",
+      "passed": true,
+      "detail": "Independently verified order histories for sample customers ['IND-CUST-03804', 'IND-CUST-01156', 'IND-CUST-00485']."
+    }
+  ]
+}

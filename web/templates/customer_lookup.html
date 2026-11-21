@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Customer 360 Lookup{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Search Bar Banner -->
+    <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700/70 shadow-sm">
+        <h1 class="text-xl font-bold text-white mb-2">Customer 360 Behavioral Lookup</h1>
+        <form method="GET" action="/customer-lookup" class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+            <div class="relative flex-1">
+                <input type="text" name="id" value="{{ search_id }}" placeholder="Enter Customer ID (e.g. CUST-00001, CUST-00042)..." class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2.5 px-4 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 text-sm font-mono uppercase">
+            </div>
+            <button type="submit" class="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-bold text-sm shadow transition-colors">
+                Search Customer
+            </button>
+        </form>
+    </div>
+
+    {% if customer %}
+    <!-- Customer Profile Cards -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Identity & Segment Card -->
+        <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-700">
+                <div>
+                    <h2 class="text-xl font-mono font-black text-white">{{ customer.customer_id }}</h2>
+                    <div class="text-xs text-slate-400 mt-0.5">{{ customer.first_name }} {{ customer.last_name }} &bull; {{ customer.city_location | default(customer.region_or_market) }} ({{ customer.city_tier | default('Metro') }})</div>
+                </div>
+                <span class="px-3 py-1 rounded-full text-xs font-bold text-white shadow" style="background-color: {{ customer.badge_color }};">
+                    {{ customer.segment }}
+                </span>
+            </div>
+
+            <div class="space-y-2 text-xs">
+                <div class="flex justify-between py-1 border-b border-slate-700/50">
+                    <span class="text-slate-400">Identity Status:</span>
+                    <span class="font-mono text-slate-200">{{ customer.identity_status }}</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-700/50">
+                    <span class="text-slate-400">Customer Email:</span>
+                    <span class="font-mono text-sky-400">{{ customer.email }}</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-700/50">
+                    <span class="text-slate-400">Phone:</span>
+                    <span class="font-mono text-slate-200">{{ customer.phone }}</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-700/50">
+                    <span class="text-slate-400">First Seen Date:</span>
+                    <span class="text-slate-200">{{ customer.first_seen_at }}</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-700/50">
+                    <span class="text-slate-400">Days Since 1st Purchase:</span>
+                    <span class="text-slate-200 font-bold">{{ customer.days_since_first_purchase }} days</span>
+                </div>
+            </div>
+
+            <!-- Marketing Permissions -->
+            <div class="pt-2">
+                <div class="text-xs font-bold uppercase text-slate-400 mb-2">Channel Permissions</div>
+                <div class="flex flex-wrap gap-2 text-xs">
+                    <span class="px-2 py-0.5 rounded {% if customer.whatsapp_opt_in %}bg-emerald-950 text-emerald-400 border border-emerald-500/30{% else %}bg-slate-800 text-slate-500{% endif %}">
+                        WhatsApp: {{ "Consented" if customer.whatsapp_opt_in else "No Opt-in" }}
+                    </span>
+                    <span class="px-2 py-0.5 rounded {% if customer.sms_opt_in %}bg-emerald-950 text-emerald-400 border border-emerald-500/30{% else %}bg-slate-800 text-slate-500{% endif %}">
+                        SMS: {{ "Consented" if customer.sms_opt_in else "No Opt-in" }}
+                    </span>
+                    <span class="px-2 py-0.5 rounded {% if customer.email_opt_in %}bg-emerald-950 text-emerald-400 border border-emerald-500/30{% else %}bg-slate-800 text-slate-500{% endif %}">
+                        Email: {{ "Consented" if customer.email_opt_in else "No Opt-in" }}
+                    </span>
+                    <span class="px-2 py-0.5 rounded {% if not customer.suppression_flag %}bg-sky-950 text-sky-400 border border-sky-500/30{% else %}bg-rose-950 text-rose-400 border border-rose-500/30{% endif %}">
+                        {{ "Active (Unsuppressed)" if not customer.suppression_flag else "Suppressed / DND" }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- RFM Behavioral Score Card -->
+        <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow space-y-4 lg:col-span-2">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-700">
+                <div>
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-200">Behavioral Score & Metric Profile</h3>
+                    <div class="text-xs text-slate-400">Calculated over rolling 12 months as of {{ customer.as_of_date }}</div>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs text-slate-400">RFM Code:</span>
+                    <span class="text-xl font-black font-mono text-sky-400 tracking-wider ml-1">{{ customer.rfm_code }}</span>
+                </div>
+            </div>
+
+            <!-- 3 Big Score Tiles -->
+            <div class="grid grid-cols-3 gap-4">
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 text-center">
+                    <div class="text-xs uppercase font-bold text-slate-400">Recency (R)</div>
+                    <div class="text-3xl font-black text-sky-400 mt-1">Score {{ customer.r_score }}</div>
+                    <div class="text-xs text-slate-300 mt-1">{{ customer.recency_days }} days ago</div>
+                    <div class="text-[10px] text-slate-500 mt-0.5">Last: {{ customer.last_purchase_at | default('Never') }}</div>
+                </div>
+
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 text-center">
+                    <div class="text-xs uppercase font-bold text-slate-400">Frequency (F)</div>
+                    <div class="text-3xl font-black text-emerald-400 mt-1">Score {{ customer.f_score }}</div>
+                    <div class="text-xs text-slate-300 mt-1">{{ customer.qualifying_order_count }} qualifying orders</div>
+                    <div class="text-[10px] text-slate-500 mt-0.5">Excludes full refunds & cancelled</div>
+                </div>
+
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 text-center">
+                    <div class="text-xs uppercase font-bold text-slate-400">Monetary (M)</div>
+                    <div class="text-3xl font-black text-purple-400 mt-1">Score {{ customer.m_score }}</div>
+                    <div class="text-xs text-slate-300 mt-1">₹{{ "{:,.2f}".format(customer.net_sales_usd) }}</div>
+                    <div class="text-[10px] text-purple-300 mt-0.5">Margin: ₹{{ "{:,.2f}".format(customer.contribution_margin_usd) }}</div>
+                </div>
+            </div>
+
+            <!-- Prescribed Strategy -->
+            <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700/80">
+                <div class="text-xs font-bold text-sky-300 uppercase tracking-wide">Recommended Commercial Action</div>
+                <p class="text-xs text-slate-300 mt-1 italic leading-relaxed">{{ customer.segment_action }}</p>
+            </div>
+
+            {% if customer.churn_probability_pct is defined %}
+            <!-- Predictive ML & pLTV Highlights -->
+            <div class="pt-2 border-t border-slate-700 grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+                <div class="bg-slate-900/90 p-3 rounded-lg border border-slate-700">
+                    <span class="text-slate-400 block text-[10px] uppercase font-bold">90-Day Churn Risk</span>
+                    <span class="text-base font-black {% if customer.churn_risk_tier in ['Critical', 'High'] %}text-rose-400{% else %}text-emerald-400{% endif %}">
+                        {{ customer.churn_probability_pct }}%
+                    </span>
+                    <span class="text-[10px] text-slate-400 block">Tier: {{ customer.churn_risk_tier }}</span>
+                </div>
+
+                <div class="bg-slate-900/90 p-3 rounded-lg border border-slate-700">
+                    <span class="text-slate-400 block text-[10px] uppercase font-bold">Predicted 12M Spend</span>
+                    <span class="text-base font-black text-sky-400">
+                        ₹{{ "{:,.2f}".format(customer.predicted_12m_net_sales) }}
+                    </span>
+                    <span class="text-[10px] text-slate-400 block">Forward Forecast</span>
+                </div>
+
+                <div class="bg-slate-900/90 p-3 rounded-lg border border-slate-700">
+                    <span class="text-slate-400 block text-[10px] uppercase font-bold">Value Tier (pLTV)</span>
+                    <span class="text-base font-black text-amber-400">
+                        {{ customer.pltv_value_tier }}
+                    </span>
+                    <span class="text-[10px] text-purple-300 block">Margin: ₹{{ "{:,.0f}".format(customer.predicted_12m_margin) }}</span>
+                </div>
+
+                <div class="bg-slate-900/90 p-3 rounded-lg border border-slate-700">
+                    <span class="text-slate-400 block text-[10px] uppercase font-bold">Action Quadrant</span>
+                    <span class="text-xs font-bold text-white block mt-0.5">
+                        {{ customer.strategic_quadrant }}
+                    </span>
+                    <span class="text-[10px] text-slate-400 block">Matrix Recommendation</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Orders Table -->
+    <div class="bg-slate-800/90 rounded-xl border border-slate-700 shadow overflow-hidden">
+        <div class="p-5 border-b border-slate-700">
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Transaction History (Last 15 Orders)</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-900/80 text-slate-400 uppercase font-semibold border-b border-slate-700">
+                    <tr>
+                        <th class="py-2.5 px-4">Order ID</th>
+                        <th class="py-2.5 px-4">Timestamp</th>
+                        <th class="py-2.5 px-4">Status</th>
+                        <th class="py-2.5 px-4">Channel</th>
+                        <th class="py-2.5 px-4 text-right">Gross</th>
+                        <th class="py-2.5 px-4 text-right">Discount</th>
+                        <th class="py-2.5 px-4 text-right">Refund</th>
+                        <th class="py-2.5 px-4 text-right">Net Sales (INR ₹)</th>
+                        <th class="py-2.5 px-4 text-center">RFM Qualifying</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700/60">
+                    {% for o in orders %}
+                    <tr class="hover:bg-slate-700/30">
+                        <td class="py-2.5 px-4 font-mono font-bold text-white">{{ o.order_id }}</td>
+                        <td class="py-2.5 px-4 text-slate-300">{{ o.order_timestamp }}</td>
+                        <td class="py-2.5 px-4">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold {% if o.order_status in ['COMPLETED', 'DELIVERED', 'FULFILLED'] %}bg-emerald-950 text-emerald-400 border border-emerald-500/30{% elif o.order_status in ['REFUNDED', 'RETURNED'] %}bg-amber-950 text-amber-400 border border-amber-500/30{% else %}bg-rose-950 text-rose-400 border border-rose-500/30{% endif %}">
+                                {{ o.order_status }}
+                            </span>
+                        </td>
+                        <td class="py-2.5 px-4 text-slate-300 uppercase text-[10px]">{{ o.channel }}</td>
+                        <td class="py-2.5 px-4 text-right text-slate-400">₹{{ "{:,.2f}".format(o.gross_amount) }}</td>
+                        <td class="py-2.5 px-4 text-right text-slate-400">₹{{ "{:,.2f}".format(o.discount_amount) }}</td>
+                        <td class="py-2.5 px-4 text-right text-rose-400">₹{{ "{:,.2f}".format(o.refund_amount) }}</td>
+                        <td class="py-2.5 px-4 text-right font-bold text-emerald-400">₹{{ "{:,.2f}".format(o.net_sales_usd) }}</td>
+                        <td class="py-2.5 px-4 text-center">
+                            {% if o.is_qualifying_order %}
+                            <span class="text-emerald-400 font-bold">✔ Yes</span>
+                            {% else %}
+                            <span class="text-slate-500 font-semibold">Excluded</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% elif search_id %}
+    <div class="bg-rose-950/40 border border-rose-700/50 p-6 rounded-xl text-center text-rose-300 text-sm">
+        No customer profile found for identifier: <strong class="font-mono">{{ search_id }}</strong>. Please check customer ID format (e.g. CUST-00001).
+    </div>
+    {% else %}
+    <div class="bg-slate-800/40 border border-dashed border-slate-700 p-8 rounded-xl text-center text-slate-400 text-sm">
+        Enter a Customer ID above (e.g. <span class="font-mono text-sky-400 cursor-pointer" onclick="document.querySelector('input[name=id]').value='CUST-00001'; document.forms[0].submit();">CUST-00001</span> or <span class="font-mono text-sky-400 cursor-pointer" onclick="document.querySelector('input[name=id]').value='CUST-00025'; document.forms[0].submit();">CUST-00025</span>) to view complete behavioral 360 profile.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

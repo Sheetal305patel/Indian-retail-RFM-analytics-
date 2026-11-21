@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}CRM Activation & Campaign Audiences{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-800/80 p-5 rounded-xl border border-slate-700/70 shadow-sm">
+        <div>
+            <h1 class="text-2xl font-extrabold text-white tracking-tight">CRM Activation & Audience Exporter</h1>
+            <p class="text-slate-400 text-sm mt-1">
+                Generate consent-filtered, suppression-aware campaign feeds with randomized holdout control groups.
+            </p>
+        </div>
+        <div class="mt-4 md:mt-0 flex items-center space-x-2 text-xs bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 px-3 py-1.5 rounded-lg">
+            <span>🛡️ Privacy by Design: PII Joined Only Upon Activation</span>
+        </div>
+    </div>
+
+    <!-- Activation & Privacy Notice -->
+    <div class="bg-sky-950/40 border border-sky-600/40 rounded-xl p-4 text-xs text-sky-200 flex items-start space-x-3">
+        <span class="text-lg">ℹ️</span>
+        <div>
+            <strong class="font-bold text-sky-100">Governance & Compliance Rule:</strong>
+            Analytical tables strictly contain anonymized customer IDs and behavioral scores. 
+            Direct contact fields (Email, Phone, Name) are dynamically resolved from the protected identity store only at export time, 
+            guaranteeing compliance with India's Digital Personal Data Protection (DPDP) Act and TRAI DND regulations.
+        </div>
+    </div>
+
+    <!-- Audience Matrix Table -->
+    <div class="bg-slate-800/90 rounded-xl border border-slate-700 shadow overflow-hidden">
+        <div class="p-5 border-b border-slate-700">
+            <h2 class="text-lg font-bold text-white">Channel Eligibility by Lifecycle Segment</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Real-time counts after applying marketing opt-ins and suppressing opted-out customers.</p>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-900/80 text-slate-400 uppercase font-semibold border-b border-slate-700">
+                    <tr>
+                        <th class="py-3 px-4">Segment</th>
+                        <th class="py-3 px-4 text-right">Total Base</th>
+                        <th class="py-3 px-4 text-right">WhatsApp (India)</th>
+                        <th class="py-3 px-4 text-right">Email</th>
+                        <th class="py-3 px-4 text-right">SMS</th>
+                        <th class="py-3 px-4 text-right">Push</th>
+                        <th class="py-3 px-4 text-right">Suppressed</th>
+                        <th class="py-3 px-4 text-center">Quick Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700/60 font-medium">
+                    {% for a in audiences %}
+                    <tr class="hover:bg-slate-700/30 transition-colors">
+                        <td class="py-3 px-4 font-bold text-white flex items-center space-x-2">
+                            <span class="w-2.5 h-2.5 rounded-full" style="background-color: {{ a.color }};"></span>
+                            <span>{{ a.segment }}</span>
+                        </td>
+                        <td class="py-3 px-4 text-right text-slate-200">{{ "{:,}".format(a.total) }}</td>
+                        <td class="py-3 px-4 text-right font-black text-emerald-400">{{ "{:,}".format(a.whatsapp_count) }}</td>
+                        <td class="py-3 px-4 text-right font-bold text-sky-400">{{ "{:,}".format(a.email_count) }}</td>
+                        <td class="py-3 px-4 text-right text-slate-300">{{ "{:,}".format(a.sms_count) }}</td>
+                        <td class="py-3 px-4 text-right text-purple-400">{{ "{:,}".format(a.push_count) }}</td>
+                        <td class="py-3 px-4 text-right text-rose-400">{{ "{:,}".format(a.suppressed_count) }}</td>
+                        <td class="py-3 px-4 text-center">
+                            <button onclick="prefillExport('{{ a.segment }}')" class="px-2.5 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded font-semibold text-xs shadow transition-colors">
+                                Export Feed
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Export & Pilot Measurement Grids -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Interactive Audience Generator -->
+        <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow space-y-4">
+            <h3 class="text-base font-bold text-white flex items-center space-x-2">
+                <span>🎯</span>
+                <span>Configure & Export Campaign Feed</span>
+            </h3>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-400 font-semibold mb-1">Target Segment</label>
+                    <select id="exportSegment" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-sky-500">
+                        {% for a in audiences %}
+                        <option value="{{ a.segment }}">{{ a.segment }} ({{ a.total }} customers)</option>
+                        {% endfor %}
+                        <option value="All">All Active Segments</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-400 font-semibold mb-1">Activation Channel</label>
+                        <select id="exportChannel" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-sky-500">
+                            <option value="whatsapp">WhatsApp (Gupshup / Interakt - India)</option>
+                            <option value="email">Email (Braze / Netcore / WebEngage)</option>
+                            <option value="sms">SMS (Gupshup / ValueFirst)</option>
+                            <option value="push">Mobile Push Notification</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-slate-400 font-semibold mb-1">Holdout Control Group</label>
+                        <select id="exportHoldout" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-sky-500">
+                            <option value="0.10">10% Holdout (Recommended)</option>
+                            <option value="0.20">20% Holdout</option>
+                            <option value="0.05">5% Holdout</option>
+                            <option value="0.00">0% (Full Blast / No Control)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="triggerExport()" id="exportBtn" class="w-full py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg shadow-md transition-colors mt-2">
+                    Generate Production Audience File
+                </button>
+
+                <div id="exportResult" class="hidden p-3 rounded-lg bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs"></div>
+            </div>
+        </div>
+
+        <!-- Pilot Lift Simulator (Section 11) -->
+        <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow space-y-4">
+            <h3 class="text-base font-bold text-white flex items-center space-x-2">
+                <span>📈</span>
+                <span>A/B Pilot Lift & Incremental Margin Analyzer</span>
+            </h3>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-400 font-semibold mb-1">Select Audience File for Pilot</label>
+                    <select id="pilotAudienceFile" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-sky-500">
+                        {% for f in exported_files %}
+                        <option value="{{ f }}">{{ f }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-slate-400 font-semibold mb-1">Campaign Title</label>
+                    <input type="text" id="pilotCampaignName" value="High-Value Win-Back Outreach Q4" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-sky-500">
+                </div>
+
+                <button onclick="runPilotMeasurement()" id="pilotBtn" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg shadow-md transition-colors mt-2">
+                    Simulate & Measure Treatment vs Holdout
+                </button>
+            </div>
+
+            <div id="pilotResultBox" class="hidden bg-slate-900/90 rounded-lg p-4 border border-slate-700 space-y-2 text-xs">
+                <div class="flex justify-between items-center pb-2 border-b border-slate-700">
+                    <span class="font-bold text-white" id="resCampName">Campaign Result</span>
+                    <span id="resStatSig" class="px-2 py-0.5 rounded font-bold"></span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-slate-300 pt-1">
+                    <div>Treatment Conversion: <strong class="text-emerald-400" id="resTreatConv"></strong></div>
+                    <div>Holdout Conversion: <strong class="text-slate-400" id="resCtrlConv"></strong></div>
+                    <div>Incremental Lift: <strong class="text-sky-400" id="resLiftPts"></strong></div>
+                    <div>Incr. Margin / Cust: <strong class="text-purple-400" id="resMarginCust"></strong></div>
+                </div>
+                <div class="pt-2 border-t border-slate-700 flex justify-between font-bold">
+                    <span class="text-slate-200">Total Incremental Margin:</span>
+                    <span class="text-emerald-400 text-sm" id="resTotalMargin"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Downloadable Audience Feeds -->
+    <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow">
+        <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-3">Generated Campaign Files (Ready for ESP / CRM Upload)</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {% for f in exported_files %}
+            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700 flex items-center justify-between">
+                <div class="truncate pr-2">
+                    <div class="text-xs font-mono font-bold text-sky-400 truncate">{{ f }}</div>
+                    <div class="text-[10px] text-slate-500">Includes Treatment & Holdout flag</div>
+                </div>
+                <a href="/api/download-audience/{{ f }}" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded text-xs font-semibold flex items-center space-x-1">
+                    <span>⬇️</span>
+                    <span>Download</span>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function prefillExport(segment) {
+        document.getElementById('exportSegment').value = segment;
+        window.scrollTo({ top: document.getElementById('exportSegment').offsetTop - 100, behavior: 'smooth' });
+    }
+
+    async function triggerExport() {
+        const seg = document.getElementById('exportSegment').value;
+        const ch = document.getElementById('exportChannel').value;
+        const holdout = document.getElementById('exportHoldout').value;
+        const btn = document.getElementById('exportBtn');
+        const resBox = document.getElementById('exportResult');
+
+        btn.disabled = true;
+        btn.innerText = "Exporting...";
+
+        try {
+            const resp = await fetch('/api/export-audience', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ segment: seg, channel: ch, holdout: holdout })
+            });
+            const data = await resp.json();
+            if (data.status === 'success') {
+                resBox.classList.remove('hidden');
+                resBox.innerHTML = `
+                    <div class="font-bold">✔ Export Generated Successfully!</div>
+                    <div class="mt-1">File: <code>${data.filename}</code> (${data.total_records} contacts)</div>
+                    <div>Treatment: <strong>${data.treatment_count}</strong> | Control Holdout: <strong>${data.control_count}</strong></div>
+                    <a href="/api/download-audience/${data.filename}" class="inline-block mt-2 px-3 py-1 bg-emerald-700 text-white rounded font-bold hover:bg-emerald-600">Download CSV</a>
+                `;
+            } else {
+                alert("Error: " + data.message);
+            }
+        } catch (err) {
+            alert("Export request failed.");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Generate Production Audience File";
+        }
+    }
+
+    async function runPilotMeasurement() {
+        const audFile = document.getElementById('pilotAudienceFile').value;
+        const campName = document.getElementById('pilotCampaignName').value;
+        const btn = document.getElementById('pilotBtn');
+
+        btn.disabled = true;
+        btn.innerText = "Simulating...";
+
+        try {
+            const resp = await fetch('/api/simulate-pilot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ audience_file: audFile, campaign_name: campName })
+            });
+            const data = await resp.json();
+            if (data.status === 'success') {
+                const r = data.result;
+                document.getElementById('pilotResultBox').classList.remove('hidden');
+                document.getElementById('resCampName').innerText = r.campaign_name;
+                document.getElementById('resTreatConv').innerText = r.treatment_conversion_rate + '%';
+                document.getElementById('resCtrlConv').innerText = r.control_conversion_rate + '%';
+                document.getElementById('resLiftPts').innerText = '+' + r.conversion_lift_points + '%';
+                document.getElementById('resMarginCust').innerText = '+₹' + r.incremental_contribution_margin_per_contact;
+                document.getElementById('resTotalMargin').innerText = '₹' + r.total_campaign_incremental_contribution_margin.toLocaleString();
+
+                const statSigPill = document.getElementById('resStatSig');
+                if (r.statistically_significant) {
+                    statSigPill.className = "px-2 py-0.5 rounded font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+                    statSigPill.innerText = `Statistically Significant (p < 0.05, z=${r.z_score})`;
+                } else {
+                    statSigPill.className = "px-2 py-0.5 rounded font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30";
+                    statSigPill.innerText = `Inconclusive (z=${r.z_score})`;
+                }
+            } else {
+                alert("Pilot error: " + data.message);
+            }
+        } catch (err) {
+            alert("Failed to run pilot simulation.");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Simulate & Measure Treatment vs Holdout";
+        }
+    }
+</script>
+{% endblock %}

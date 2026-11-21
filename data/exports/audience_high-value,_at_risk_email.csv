@@ -1,0 +1,22 @@
+customer_id,first_name,email,segment,rfm_code,r_score,f_score,m_score,recency_days,qualifying_order_count,campaign_group
+IND-CUST-00004,Aditya,aditya.bose294@rediffmail.com,"High-Value, At Risk",334,3,3,4,207,3,TREATMENT
+IND-CUST-00521,Simran,simran.verma412@gmail.com,"High-Value, At Risk",334,3,3,4,194,3,TREATMENT
+IND-CUST-00574,Kavita,kavita.verma856@icloud.com,"High-Value, At Risk",324,3,2,4,194,2,TREATMENT
+IND-CUST-00610,Suresh,suresh.menon136@yahoo.co.in,"High-Value, At Risk",214,2,1,4,331,1,TREATMENT
+IND-CUST-00804,Simran,simran.das756@outlook.com,"High-Value, At Risk",314,3,1,4,212,1,TREATMENT
+IND-CUST-01192,Divya,divya.saxena37@outlook.com,"High-Value, At Risk",324,3,2,4,202,2,TREATMENT
+IND-CUST-01305,Meera,meera.pillai578@outlook.com,"High-Value, At Risk",314,3,1,4,293,1,TREATMENT
+IND-CUST-01510,Ishita,ishita.nair269@outlook.com,"High-Value, At Risk",214,2,1,4,362,1,TREATMENT
+IND-CUST-01764,Rahul,rahul.bhattacharya338@gmail.com,"High-Value, At Risk",314,3,1,4,182,1,TREATMENT
+IND-CUST-02135,Rajesh,rajesh.trivedi177@icloud.com,"High-Value, At Risk",334,3,3,4,265,4,TREATMENT
+IND-CUST-02302,Gaurav,gaurav.chopra768@icloud.com,"High-Value, At Risk",314,3,1,4,247,1,TREATMENT
+IND-CUST-02371,Vikram,vikram.trivedi656@rediffmail.com,"High-Value, At Risk",324,3,2,4,192,2,TREATMENT
+IND-CUST-02648,Rajesh,rajesh.sharma633@icloud.com,"High-Value, At Risk",334,3,3,4,255,3,TREATMENT
+IND-CUST-02942,Preeti,preeti.verma660@outlook.com,"High-Value, At Risk",334,3,3,4,208,3,CONTROL_HOLDOUT
+IND-CUST-02951,Simran,simran.deshmukh704@yahoo.co.in,"High-Value, At Risk",324,3,2,4,245,2,TREATMENT
+IND-CUST-03189,Vikram,vikram.aggarwal511@gmail.com,"High-Value, At Risk",334,3,3,4,201,4,TREATMENT
+IND-CUST-03405,Varun,varun.menon116@outlook.com,"High-Value, At Risk",214,2,1,4,317,1,TREATMENT
+IND-CUST-03415,Rhea,rhea.mehta833@gmail.com,"High-Value, At Risk",344,3,4,4,191,7,TREATMENT
+IND-CUST-03544,Karan,karan.bhatia761@yahoo.co.in,"High-Value, At Risk",234,2,3,4,306,3,TREATMENT
+IND-CUST-03613,Swati,swati.joshi290@icloud.com,"High-Value, At Risk",334,3,3,4,237,4,TREATMENT
+IND-CUST-03966,Arjun,arjun.sharma764@gmail.com,"High-Value, At Risk",324,3,2,4,295,2,TREATMENT

@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}Indian Consumer Market Executive Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header banner -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-800/80 p-5 rounded-xl border border-slate-700/70 shadow-sm">
+        <div>
+            <div class="flex items-center space-x-2">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-500/40">🇮🇳 100% Indian Consumer Market</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-950 text-sky-400 border border-sky-500/40">Enterprise Omnichannel Benchmark</span>
+            </div>
+            <h1 class="text-2xl font-extrabold text-white tracking-tight mt-1">Indian Consumer Value & Lifecycle Executive Dashboard</h1>
+            <p class="text-slate-400 text-xs mt-0.5">
+                Benchmarked against top Indian consumer & retail conglomerates: <strong>Tata Consumer / Tata Neu</strong>, <strong>Reliance Retail / Ajio</strong>, <strong>Nykaa</strong>, <strong>HUL</strong>, and <strong>ITC</strong>.
+            </p>
+        </div>
+        <div class="mt-4 md:mt-0 flex items-center space-x-3 text-xs text-slate-300">
+            <span class="bg-slate-700/80 px-3 py-1.5 rounded-lg border border-slate-600">
+                Reporting Currency: <strong class="text-emerald-400">INR (₹)</strong>
+            </span>
+            <span class="bg-slate-700/80 px-3 py-1.5 rounded-lg border border-slate-600">
+                Observation: <strong class="text-white">Rolling 12 Months</strong>
+            </span>
+        </div>
+    </div>
+
+    <!-- KPI Metric Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Total Identified Indian Consumers -->
+        <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow relative overflow-hidden">
+            <div class="text-xs uppercase font-bold text-slate-400 tracking-wider">Identified Consumers (India)</div>
+            <div class="text-3xl font-black text-white mt-2">{{ "{:,}".format(metrics.total_customers) }}</div>
+            <div class="mt-2 text-xs flex justify-between text-slate-300">
+                <span>Active (12M): <strong class="text-emerald-400">{{ "{:,}".format(metrics.active_customers) }}</strong></span>
+                <span>Lapsed: <strong class="text-rose-400">{{ "{:,}".format(metrics.inactive_customers) }}</strong></span>
+            </div>
+            <div class="absolute -right-3 -bottom-3 w-16 h-16 bg-sky-500/10 rounded-full blur-xl pointer-events-none"></div>
+        </div>
+
+        <!-- Net Identified Sales (NMV) in INR -->
+        <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow relative overflow-hidden">
+            <div class="text-xs uppercase font-bold text-slate-400 tracking-wider">Net Merchandise Sales (NMV)</div>
+            <div class="text-3xl font-black text-emerald-400 mt-2">₹{{ "{:,.2f}".format(metrics.identified_net_sales) }}</div>
+            <div class="mt-2 text-xs text-slate-300">
+                Gross GMV: <span class="text-slate-400">₹{{ "{:,.0f}".format(metrics.total_gross_sales) }}</span>
+            </div>
+            <div class="absolute -right-3 -bottom-3 w-16 h-16 bg-emerald-500/10 rounded-full blur-xl pointer-events-none"></div>
+        </div>
+
+        <!-- Omnichannel Identity Revenue Coverage -->
+        <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow relative overflow-hidden">
+            <div class="text-xs uppercase font-bold text-slate-400 tracking-wider">Store Identity Capture Rate</div>
+            <div class="text-3xl font-black text-sky-400 mt-2">{{ metrics.identity_coverage_pct }}%</div>
+            <div class="mt-2 text-xs text-slate-300">
+                Store Walk-ins (Anon): <span class="text-amber-400">₹{{ "{:,.2f}".format(metrics.anonymous_net_sales) }}</span>
+            </div>
+            <div class="absolute -right-3 -bottom-3 w-16 h-16 bg-sky-500/10 rounded-full blur-xl pointer-events-none"></div>
+        </div>
+
+        <!-- Contribution Margin in INR -->
+        <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow relative overflow-hidden">
+            <div class="text-xs uppercase font-bold text-slate-400 tracking-wider">Contribution Margin (CM2)</div>
+            <div class="text-3xl font-black text-purple-400 mt-2">₹{{ "{:,.2f}".format(metrics.total_contribution_margin) }}</div>
+            <div class="mt-2 text-xs text-slate-300">
+                CM2 Ratio: <span class="text-purple-300 font-semibold">{{ "{:.1f}%".format((metrics.total_contribution_margin / metrics.identified_net_sales * 100) if metrics.identified_net_sales > 0 else 0) }}</span>
+            </div>
+            <div class="absolute -right-3 -bottom-3 w-16 h-16 bg-purple-500/10 rounded-full blur-xl pointer-events-none"></div>
+        </div>
+    </div>
+
+    <!-- Indian Market Dynamics: City Tiers & COD vs UPI Unit Economics -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- City Tier Distribution -->
+        <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-700">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center space-x-2">
+                    <span>🏙️</span>
+                    <span>Indian Consumer Distribution Across City Tiers</span>
+                </h3>
+                <span class="text-xs text-emerald-400 font-bold">Bharat Growth Mix</span>
+            </div>
+            <div class="space-y-2 text-xs">
+                {% if tier_stats %}
+                {% for t in tier_stats %}
+                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/80 flex items-center justify-between">
+                    <div>
+                        <strong class="text-white font-bold text-sm">{{ t.tier }}</strong>
+                        <div class="text-[11px] text-slate-400">{{ "{:,}".format(t.customers) }} consumers ({{ t.cust_share }}% base)</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-emerald-400 text-sm">₹{{ "{:,.2f}".format(t.net_sales) }}</div>
+                        <div class="text-[11px] text-slate-400">{{ t.sales_share }}% total sales</div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/80 flex items-center justify-between">
+                    <div><strong class="text-white">Tier 1 - Metro</strong> (Bengaluru, Delhi NCR, Mumbai, Hyderabad)</div>
+                    <div class="text-emerald-400 font-bold">45% Volume</div>
+                </div>
+                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/80 flex items-center justify-between">
+                    <div><strong class="text-white">Tier 2 - Emerging Hubs</strong> (Jaipur, Lucknow, Indore, Chandigarh)</div>
+                    <div class="text-emerald-400 font-bold">35% Volume</div>
+                </div>
+                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/80 flex items-center justify-between">
+                    <div><strong class="text-white">Tier 3 - Bharat Growth Belt</strong> (Patna, Bhopal, Bhubaneswar)</div>
+                    <div class="text-emerald-400 font-bold">20% Volume</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Indian E-Commerce COD vs Prepaid RTO Unit Economics (Recruiter Talking Point) -->
+        <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-700">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center space-x-2">
+                    <span>⚡</span>
+                    <span>India Payment Economics: COD vs UPI / Prepaid</span>
+                </h3>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-500/30">RTO Risk Mitigation</span>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+                Cash on Delivery (COD) carries a ~25% <strong>Return-To-Origin (RTO)</strong> bounce rate, 
+                burning forward & reverse 3PL courier charges (₹140/order). Curating failed COD out of RFM prevents artificial scoring inflation.
+            </p>
+            {% if india_cod_stats %}
+            <div class="grid grid-cols-2 gap-3 text-xs pt-1">
+                <div class="bg-slate-900/90 p-3 rounded-lg border border-slate-700">
+                    <span class="text-slate-400 block text-[10px] uppercase font-bold">Cash on Delivery (COD)</span>
+                    <span class="text-base font-black text-rose-400">{{ india_cod_stats.cod_rto_rate_pct }}% RTO Rate</span>
+                    <span class="text-[11px] text-slate-400 block mt-0.5">{{ india_cod_stats.cod_rto_count }} doorstep bounces</span>
+                </div>
+                <div class="bg-slate-900/90 p-3 rounded-lg border border-slate-700">
+                    <span class="text-slate-400 block text-[10px] uppercase font-bold">Prepaid (UPI / Cards)</span>
+                    <span class="text-base font-black text-emerald-400">{{ india_cod_stats.prepaid_return_rate_pct }}% Return Rate</span>
+                    <span class="text-[11px] text-slate-400 block mt-0.5">{{ india_cod_stats.prepaid_orders_count }} prepaid orders</span>
+                </div>
+            </div>
+            <div class="text-[11px] text-sky-300 italic bg-sky-950/40 p-2.5 rounded-lg border border-sky-800/40">
+                💡 <strong>Recruiter Takeaway:</strong> High-risk COD customers are targeted via WhatsApp with a 5% UPI discount on their 2nd purchase, eliminating ₹{{ "{:,.2f}".format(india_cod_stats.rto_loss_avoidance_usd) }} in wasted reverse logistics.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Donut Chart: Sales Concentration -->
+        <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-700">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-200">Revenue Concentration by Segment</h3>
+                <span class="text-xs text-slate-400">8 Lifecycle Segments</span>
+            </div>
+            <div class="h-64 mt-4 flex items-center justify-center relative">
+                <canvas id="salesDonutChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Bar Chart: Customer Share vs Sales Share -->
+        <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow lg:col-span-2">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-700">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-200">Consumer Base Share vs Net Sales Share (%)</h3>
+                <span class="text-xs text-slate-400">Pareto Disproportion Analysis</span>
+            </div>
+            <div class="h-64 mt-4 relative">
+                <canvas id="shareComparisonBarChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Segment Breakdown Table -->
+    <div class="bg-slate-800/90 rounded-xl border border-slate-700 shadow overflow-hidden">
+        <div class="p-5 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+            <div>
+                <h2 class="text-lg font-bold text-white">Commercial Lifecycle Segments (Indian Consumers)</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Scored using quintiles (1-5) on rolling 12-month orders with documented tie resolution in INR (₹).</p>
+            </div>
+            <a href="/crm" class="mt-3 sm:mt-0 text-xs font-semibold text-sky-400 hover:text-sky-300 flex items-center space-x-1">
+                <span>Configure WhatsApp Campaigns in CRM View</span>
+                <span>&rarr;</span>
+            </a>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-900/80 text-slate-400 uppercase font-semibold border-b border-slate-700">
+                    <tr>
+                        <th class="py-3 px-4">Segment</th>
+                        <th class="py-3 px-4 text-right">Consumers</th>
+                        <th class="py-3 px-4 text-right">Base %</th>
+                        <th class="py-3 px-4 text-right">Net Sales (INR ₹)</th>
+                        <th class="py-3 px-4 text-right">Sales %</th>
+                        <th class="py-3 px-4 text-right">Contrib. Margin</th>
+                        <th class="py-3 px-4 text-right">Avg Recency</th>
+                        <th class="py-3 px-4 text-right">Avg Orders</th>
+                        <th class="py-3 px-4">Prescribed Commercial Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700/60 font-medium">
+                    {% for s in segments %}
+                    <tr class="hover:bg-slate-700/30 transition-colors">
+                        <td class="py-3 px-4 font-bold text-white flex items-center space-x-2">
+                            <span class="w-2.5 h-2.5 rounded-full" style="background-color: {{ s.color }};"></span>
+                            <span>{{ s.name }}</span>
+                        </td>
+                        <td class="py-3 px-4 text-right text-slate-200">{{ "{:,}".format(s.customer_count) }}</td>
+                        <td class="py-3 px-4 text-right text-slate-400">{{ s.customer_share_pct }}%</td>
+                        <td class="py-3 px-4 text-right font-bold text-emerald-400">₹{{ "{:,.2f}".format(s.net_sales) }}</td>
+                        <td class="py-3 px-4 text-right text-slate-200 font-semibold">{{ s.sales_share_pct }}%</td>
+                        <td class="py-3 px-4 text-right text-purple-300">₹{{ "{:,.2f}".format(s.margin) }}</td>
+                        <td class="py-3 px-4 text-right text-slate-300">{{ s.avg_recency }}d</td>
+                        <td class="py-3 px-4 text-right text-slate-300">{{ s.avg_orders }}</td>
+                        <td class="py-3 px-4 text-slate-300 text-xs italic">{{ s.action }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Data passed from server
+    const segmentLabels = {{ segments | map(attribute='name') | list | tojson }};
+    const segmentSales = {{ segments | map(attribute='net_sales') | list | tojson }};
+    const segmentCustShare = {{ segments | map(attribute='customer_share_pct') | list | tojson }};
+    const segmentSalesShare = {{ segments | map(attribute='sales_share_pct') | list | tojson }};
+    const segmentColors = {{ segments | map(attribute='color') | list | tojson }};
+
+    // 1. Donut Chart
+    const donutCtx = document.getElementById('salesDonutChart').getContext('2d');
+    new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+            labels: segmentLabels,
+            datasets: [{
+                data: segmentSales,
+                backgroundColor: segmentColors,
+                borderWidth: 1,
+                borderColor: '#1e293b'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 10, color: '#94a3b8', font: { size: 10 } } }
+            },
+            cutout: '65%'
+        }
+    });
+
+    // 2. Bar Comparison Chart
+    const barCtx = document.getElementById('shareComparisonBarChart').getContext('2d');
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: segmentLabels,
+            datasets: [
+                {
+                    label: 'Consumer Share (%)',
+                    data: segmentCustShare,
+                    backgroundColor: '#38bdf8',
+                    borderRadius: 4
+                },
+                {
+                    label: 'Net Sales Share (%)',
+                    data: segmentSalesShare,
+                    backgroundColor: '#10b981',
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } },
+                y: { ticks: { color: '#94a3b8', callback: v => v + '%' }, grid: { color: '#334155' } }
+            },
+            plugins: {
+                legend: { position: 'top', labels: { color: '#cbd5e1' } }
+            }
+        }
+    });
+</script>
+{% endblock %}

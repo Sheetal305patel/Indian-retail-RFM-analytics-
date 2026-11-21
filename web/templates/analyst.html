@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Analyst & Audit View{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-800/80 p-5 rounded-xl border border-slate-700/70 shadow-sm">
+        <div>
+            <h1 class="text-2xl font-extrabold text-white tracking-tight">Analyst, Audit & Acceptance View</h1>
+            <p class="text-slate-400 text-sm mt-1">
+                Deep-dive score distributions, tie-breaking methodologies, and 10-point financial reconciliation evidence.
+            </p>
+        </div>
+        <div class="mt-4 md:mt-0 flex items-center space-x-2">
+            <span class="px-3 py-1.5 rounded-lg text-xs font-bold {% if report.overall_status == 'PASSED' %}bg-emerald-950/80 border border-emerald-500/50 text-emerald-400{% else %}bg-rose-950/80 border border-rose-500/50 text-rose-400{% endif %}">
+                Audit Status: {{ report.overall_status | default('PENDING') }} ({{ report.scorecard | default('N/A') }})
+            </span>
+        </div>
+    </div>
+
+    <!-- RFM Score Distributions (3-column charts) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Recency Distribution -->
+        <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-700">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">Recency (R) Scores (1-5)</h3>
+                <span class="text-[10px] text-slate-400">5 is Most Recent</span>
+            </div>
+            <div class="h-48 mt-3 relative">
+                <canvas id="rDistChart"></canvas>
+            </div>
+            <div class="text-[11px] text-slate-400 mt-2 text-center">
+                Median: <strong>{{ stats.recency_median }} days</strong> (Range: {{ stats.recency_min }} - {{ stats.recency_max }}d)
+            </div>
+        </div>
+
+        <!-- Frequency Distribution -->
+        <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-700">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400">Frequency (F) Scores (1-5)</h3>
+                <span class="text-[10px] text-slate-400">5 is Most Frequent</span>
+            </div>
+            <div class="h-48 mt-3 relative">
+                <canvas id="fDistChart"></canvas>
+            </div>
+            <div class="text-[11px] text-slate-400 mt-2 text-center">
+                Ties: <strong>{{ stats.one_freq_count }}</strong> one-time buyers, <strong>{{ stats.zero_freq_count }}</strong> inactive
+            </div>
+        </div>
+
+        <!-- Monetary Distribution -->
+        <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-700">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-purple-400">Monetary (M) Scores (1-5)</h3>
+                <span class="text-[10px] text-slate-400">5 is Highest Spend</span>
+            </div>
+            <div class="h-48 mt-3 relative">
+                <canvas id="mDistChart"></canvas>
+            </div>
+            <div class="text-[11px] text-slate-400 mt-2 text-center">
+                Median Spend: <strong>₹{{ "{:,.2f}".format(stats.monetary_median) }}</strong> (Max: ₹{{ "{:,.0f}".format(stats.monetary_max) }})
+            </div>
+        </div>
+    </div>
+
+    <!-- Tie Handling & Scoring Methodology Box -->
+    <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow space-y-3">
+        <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center space-x-2">
+            <span>⚙️</span>
+            <span>Documented Tie-Handling & Percentile Logic (Blueprint Section 6)</span>
+        </h3>
+        <p class="text-xs text-slate-300 leading-relaxed">
+            Standard quintile binning often fails in commercial retail because a massive percentage of customers share identical frequency 
+            (e.g., exactly 1 purchase) or zero monetary spend in the observation window. Arbitrary bin splitting would assign two customers with identical 
+            order histories different scores.
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs pt-1">
+            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700">
+                <strong class="text-sky-400 block mb-1">Recency Tie Rule</strong>
+                Customers sharing identical recency days receive the identical minimum percentile tier. Lower recency days earn higher scores (Score 5: top 20% most recent).
+            </div>
+            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700">
+                <strong class="text-emerald-400 block mb-1">Frequency Tie Rule</strong>
+                Customers with 0 qualifying orders are explicitly anchored to Score 1. Customers with 1 order share the same fair tier without artificial binning.
+            </div>
+            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700">
+                <strong class="text-purple-400 block mb-1">Monetary Tie Rule</strong>
+                Net spend <= ₹0 is strictly anchored to Score 1. High spenders are bucketed using smooth cumulative percentile thresholds.
+            </div>
+        </div>
+    </div>
+
+    <!-- Automated 10-Point Acceptance Checklist -->
+    <div class="bg-slate-800/90 rounded-xl border border-slate-700 shadow overflow-hidden">
+        <div class="p-5 border-b border-slate-700 flex justify-between items-center">
+            <div>
+                <h2 class="text-lg font-bold text-white">Acceptance Criteria & Audit Checklist</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Automated validation executed against Section 10 launch criteria.</p>
+            </div>
+            <span class="text-xs font-mono text-slate-400">Timestamp: {{ report.audit_timestamp }}</span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-900/80 text-slate-400 uppercase font-semibold border-b border-slate-700">
+                    <tr>
+                        <th class="py-3 px-4">Check ID</th>
+                        <th class="py-3 px-4">Verification Requirement</th>
+                        <th class="py-3 px-4 text-center">Audit Result</th>
+                        <th class="py-3 px-4">Expected Threshold</th>
+                        <th class="py-3 px-4">Observed Metric</th>
+                        <th class="py-3 px-4">Audit Evidence</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700/60 font-medium">
+                    {% for c in report.checklist %}
+                    <tr class="hover:bg-slate-700/30 transition-colors">
+                        <td class="py-3 px-4 font-mono text-slate-400">{{ c.check_id }}</td>
+                        <td class="py-3 px-4 font-bold text-white">{{ c.name }}</td>
+                        <td class="py-3 px-4 text-center">
+                            {% if c.passed %}
+                            <span class="px-2 py-0.5 rounded font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">PASS</span>
+                            {% else %}
+                            <span class="px-2 py-0.5 rounded font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">FAIL</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4 text-slate-300">{{ c.expected }}</td>
+                        <td class="py-3 px-4 font-mono text-sky-300">{{ c.actual }}</td>
+                        <td class="py-3 px-4 text-slate-400 italic text-[11px]">{{ c.detail }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const rScores = {{ r_dist.keys() | list | tojson }};
+    const rCounts = {{ r_dist.values() | list | tojson }};
+    const fScores = {{ f_dist.keys() | list | tojson }};
+    const fCounts = {{ f_dist.values() | list | tojson }};
+    const mScores = {{ m_dist.keys() | list | tojson }};
+    const mCounts = {{ m_dist.values() | list | tojson }};
+
+    function renderHist(id, labels, data, color) {
+        new Chart(document.getElementById(id).getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: labels.map(l => 'Score ' + l),
+                datasets: [{
+                    data: data,
+                    backgroundColor: color,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } },
+                    y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }
+                }
+            }
+        });
+    }
+
+    renderHist('rDistChart', rScores, rCounts, '#38bdf8');
+    renderHist('fDistChart', fScores, fCounts, '#10b981');
+    renderHist('mDistChart', mScores, mCounts, '#a855f7');
+</script>
+{% endblock %}

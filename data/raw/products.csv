@@ -1,0 +1,14 @@
+product_id,name,category,base_price_inr,cost_ratio,return_prob
+SKU-BEA-01,Niacinamide 10% Clarifying Face Serum 30ml,Beauty & Skincare,649.0,0.22,0.02
+SKU-BEA-02,Ultra-Matte Sunscreen Gel SPF 50 PA++++,Beauty & Skincare,549.0,0.24,0.02
+SKU-BEA-03,Organic Red Onion Hair Fall Control Oil 200ml,Haircare & Wellness,499.0,0.2,0.01
+SKU-BEA-04,Matte Liquid Lipstick Longwear Festive Edition,Beauty & Cosmetics,799.0,0.25,0.03
+SKU-APP-01,Pure Breathable Cotton Daily Kurta / Shirt,Apparel & Ethnic,1299.0,0.32,0.08
+SKU-APP-02,Comfort Stretch Slim-Fit Denim Jeans,Apparel & Western,2199.0,0.36,0.1
+SKU-APP-03,Handcrafted Festive Embroidered Anarkali Set,Apparel & Festive,4499.0,0.38,0.12
+SKU-FTW-01,Cushioned Street Pro Running Sneakers,Footwear & Athleisure,2799.0,0.4,0.11
+SKU-FTW-02,Handcrafted Vegan Leather Formal Slip-ons,Footwear & Formal,3299.0,0.42,0.09
+SKU-ELE-01,Spatial Audio ANC True Wireless Earbuds,Smart Electronics,1999.0,0.34,0.05
+SKU-ELE-02,AMOLED Display Bluetooth Calling Smartwatch,Smart Electronics,2999.0,0.35,0.06
+SKU-FMC-01,Artisanal Single-Origin Darjeeling Tea 250g,Gourmet Foods & Beverages,450.0,0.28,0.01
+SKU-FMC-02,Cold-Pressed Organic Virgin Coconut Oil 500ml,Gourmet Foods & Beverages,380.0,0.3,0.01

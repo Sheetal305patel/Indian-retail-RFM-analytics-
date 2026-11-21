@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Real-Time Event Streaming & Incremental State Engine{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-800/80 p-5 rounded-xl border border-slate-700/70 shadow-sm">
+        <div>
+            <div class="flex items-center space-x-2">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-500/40 animate-pulse">Live Event Bus Active</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-950 text-sky-400 border border-sky-500/40">Incremental State Updates</span>
+            </div>
+            <h1 class="text-2xl font-extrabold text-white tracking-tight mt-1">Real-Time Event Stream Monitor</h1>
+            <p class="text-slate-400 text-sm mt-0.5">
+                Low-latency stream processing updating customer recency, frequency, RFM scores, and segment migrations dynamically.
+            </p>
+        </div>
+        <div class="mt-4 md:mt-0 flex items-center space-x-3 text-xs">
+            <button onclick="toggleSSE()" id="sseToggleBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg shadow transition-colors flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+                <span id="sseBtnText">Connect Live Stream</span>
+            </button>
+            <button onclick="injectSimulatedEvent()" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg shadow transition-colors">
+                ⚡ Inject Event
+            </button>
+        </div>
+    </div>
+
+    <!-- Live KPI Metric Counters -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow">
+            <div class="text-xs uppercase font-bold text-slate-400 tracking-wider">Events Processed (Online State)</div>
+            <div class="text-3xl font-black text-white mt-2" id="kpiEvents">{{ stats.events_processed }}</div>
+            <div class="text-xs text-slate-400 mt-1">Zero-downtime incremental updates</div>
+        </div>
+
+        <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow">
+            <div class="text-xs uppercase font-bold text-slate-400 tracking-wider">Live Revenue Ingested</div>
+            <div class="text-3xl font-black text-emerald-400 mt-2" id="kpiRevenue">₹{{ "{:,.2f}".format(stats.live_revenue_added) }}</div>
+            <div class="text-xs text-slate-400 mt-1">Directly added to customer lifetime spend</div>
+        </div>
+
+        <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow">
+            <div class="text-xs uppercase font-bold text-slate-400 tracking-wider">Real-Time Segment Migrations</div>
+            <div class="text-3xl font-black text-sky-400 mt-2" id="kpiTransitions">{{ stats.transitions_count }}</div>
+            <div class="text-xs text-slate-400 mt-1">Customers dynamically promoted in stream</div>
+        </div>
+    </div>
+
+    <!-- Main Grid: Live Event Stream Ticker & Transition Feed -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Live Incoming Transactions Ticker -->
+        <div class="bg-slate-800/90 rounded-xl border border-slate-700 shadow lg:col-span-2 overflow-hidden flex flex-col">
+            <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-850">
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center space-x-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Live Event Ingestion Ticker (Orders & Interactions)</span>
+                </h3>
+                <span class="text-[10px] text-slate-400 font-mono" id="streamStatusIndicator">Status: Paused (Click Connect)</span>
+            </div>
+
+            <div class="overflow-x-auto flex-1">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="bg-slate-900/80 text-slate-400 uppercase font-semibold border-b border-slate-700">
+                        <tr>
+                            <th class="py-2.5 px-3">Timestamp</th>
+                            <th class="py-2.5 px-3">Customer ID</th>
+                            <th class="py-2.5 px-3 text-right">Net Spend (INR ₹)</th>
+                            <th class="py-2.5 px-3 text-center">RFM Shift</th>
+                            <th class="py-2.5 px-3">Segment Result</th>
+                            <th class="py-2.5 px-3 text-right">Churn $\Delta$</th>
+                        </tr>
+                    </thead>
+                    <tbody id="liveEventBody" class="divide-y divide-slate-700/60 font-mono">
+                        <tr class="text-slate-500 italic text-center py-4">
+                            <td colspan="6" class="py-6">Click 'Connect Live Stream' or 'Inject Event' above to watch events process live...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Live Segment Migrations & Alerts Feed -->
+        <div class="bg-slate-800/90 rounded-xl p-5 border border-slate-700 shadow space-y-4 flex flex-col">
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center space-x-2">
+                <span>🚀</span>
+                <span>Real-Time Segment Promotions</span>
+            </h3>
+            <p class="text-xs text-slate-400">
+                Detected when an incoming order pushes a customer over an RFM frequency or monetary boundary.
+            </p>
+
+            <div id="migrationAlertFeed" class="space-y-2 overflow-y-auto max-h-[380px] flex-1 pr-1">
+                {% if transitions %}
+                {% for t in transitions %}
+                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700 text-xs space-y-1">
+                    <div class="flex justify-between items-center">
+                        <strong class="font-mono text-sky-400">{{ t.customer_id }}</strong>
+                        <span class="text-[10px] text-slate-500">{{ t.timestamp }}</span>
+                    </div>
+                    <div class="text-slate-300">
+                        <span class="text-slate-400 line-through">{{ t.from_segment }}</span>
+                        <span class="text-emerald-400 font-bold mx-1">&rarr;</span>
+                        <span class="text-emerald-400 font-bold">{{ t.to_segment }}</span>
+                    </div>
+                    <div class="text-[10px] text-slate-500 italic">{{ t.reason }}</div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="text-slate-500 text-xs italic text-center py-8">
+                    No promotions in current window. Events will appear here dynamically.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let sseSource = null;
+    let eventsCount = {{ stats.events_processed }};
+    let revenueSum = {{ stats.live_revenue_added }};
+    let transCount = {{ stats.transitions_count }};
+
+    function appendEventToTable(evt) {
+        const tbody = document.getElementById('liveEventBody');
+        // Clear placeholder if present
+        if (tbody.innerHTML.includes('Click \'Connect Live Stream\'')) {
+            tbody.innerHTML = '';
+        }
+
+        eventsCount++;
+        revenueSum += parseFloat(evt.amount || 0);
+        document.getElementById('kpiEvents').innerText = eventsCount.toLocaleString();
+        document.getElementById('kpiRevenue').innerText = '₹' + revenueSum.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+        const row = document.createElement('tr');
+        row.className = "hover:bg-slate-700/40 transition-colors bg-sky-950/20";
+        
+        const churnDrop = (evt.old_churn_prob && evt.new_churn_prob) 
+            ? `${(evt.old_churn_prob*100).toFixed(0)}% → ${(evt.new_churn_prob*100).toFixed(0)}%` 
+            : '-';
+
+        row.innerHTML = `
+            <td class="py-2 px-3 text-slate-400 text-[11px]">${evt.timestamp.split(' ')[1]}</td>
+            <td class="py-2 px-3 font-bold text-sky-400">
+                <a href="/customer-lookup?id=${evt.customer_id}" target="_blank" class="hover:underline">${evt.customer_id}</a>
+            </td>
+            <td class="py-2 px-3 text-right font-bold text-emerald-400">₹${parseFloat(evt.amount).toFixed(2)}</td>
+            <td class="py-2 px-3 text-center text-slate-300 text-[11px]">${evt.old_rfm} → <strong class="text-white">${evt.new_rfm}</strong></td>
+            <td class="py-2 px-3 text-[11px]">
+                ${evt.segment_transition ? `<span class="text-emerald-400 font-bold">${evt.new_segment}</span>` : `<span class="text-slate-300">${evt.new_segment}</span>`}
+            </td>
+            <td class="py-2 px-3 text-right text-[11px] text-rose-300">${churnDrop}</td>
+        `;
+
+        tbody.insertBefore(row, tbody.firstChild);
+
+        // Keep maximum 20 rows
+        if (tbody.children.length > 20) {
+            tbody.removeChild(tbody.lastChild);
+        }
+
+        // If transition occurred, add to migration feed
+        if (evt.segment_transition) {
+            transCount++;
+            document.getElementById('kpiTransitions').innerText = transCount;
+            appendMigrationCard(evt);
+        }
+    }
+
+    function appendMigrationCard(evt) {
+        const feed = document.getElementById('migrationAlertFeed');
+        if (feed.innerHTML.includes('No promotions in current window')) {
+            feed.innerHTML = '';
+        }
+        const card = document.createElement('div');
+        card.className = "bg-slate-900/90 p-3 rounded-lg border border-emerald-500/40 text-xs space-y-1 shadow animate-pulse";
+        card.innerHTML = `
+            <div class="flex justify-between items-center">
+                <strong class="font-mono text-sky-400">${evt.customer_id}</strong>
+                <span class="text-[10px] text-slate-500">${evt.timestamp}</span>
+            </div>
+            <div class="text-slate-300">
+                <span class="text-slate-400 line-through">${evt.old_segment}</span>
+                <span class="text-emerald-400 font-bold mx-1">&rarr;</span>
+                <span class="text-emerald-400 font-bold">${evt.new_segment}</span>
+            </div>
+            <div class="text-[10px] text-slate-400 italic">Triggered by ₹${parseFloat(evt.amount).toFixed(2)} live purchase</div>
+        `;
+        feed.insertBefore(card, feed.firstChild);
+    }
+
+    async function injectSimulatedEvent() {
+        try {
+            const resp = await fetch('/api/stream/inject', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({})
+            });
+            const data = await resp.json();
+            appendEventToTable(data);
+        } catch (err) {
+            alert('Failed to inject stream event.');
+        }
+    }
+
+    function toggleSSE() {
+        const btnText = document.getElementById('sseBtnText');
+        const status = document.getElementById('streamStatusIndicator');
+
+        if (sseSource) {
+            sseSource.close();
+            sseSource = null;
+            btnText.innerText = "Connect Live Stream";
+            status.innerText = "Status: Paused";
+            status.className = "text-[10px] text-slate-400 font-mono";
+        } else {
+            btnText.innerText = "Disconnect Stream";
+            status.innerText = "Status: Streaming Live (SSE Connected)";
+            status.className = "text-[10px] text-emerald-400 font-mono font-bold";
+
+            sseSource = new EventSource('/api/stream/events');
+            sseSource.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                appendEventToTable(data);
+            };
+            sseSource.onerror = function() {
+                status.innerText = "Status: Reconnecting...";
+            };
+        }
+    }
+</script>
+{% endblock %}
