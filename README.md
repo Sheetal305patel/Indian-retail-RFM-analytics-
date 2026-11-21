@@ -162,7 +162,7 @@ The project includes a web dashboard built with Flask, Tailwind CSS, and Chart.j
 Clone the repository and install dependencies:
 ```bash
 # Clone the repository
-git clone https://github.com/<your-username>/indian-retail-rfm-analytics.git
+git clone https://github.com/Sheetal305patel/indian-retail-rfm-analytics.git
 cd indian-retail-rfm-analytics
 
 # Create and activate virtual environment
@@ -255,8 +255,8 @@ OK
 
 **Sheetal Patel**  
 * **Email:** [sheetalpatel8603@gmail.com](mailto:sheetalpatel8603@gmail.com)  
-* **GitHub:** [github.com/sheetalpatel](https://github.com/) *(Update with your exact profile link)*  
-* **LinkedIn:** [linkedin.com/in/sheetalpatel](https://www.linkedin.com/) *(Update with your profile link)*
+* **GitHub:** [@Sheetal305patel](https://github.com/Sheetal305patel)  
+* **LinkedIn:** [Sheetal Patel](https://www.linkedin.com/) *(Add your LinkedIn URL)*
 
 ---
 
